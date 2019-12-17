@@ -1,6 +1,9 @@
 exception NoConfig
+exception ScheduleSizeMismatch
+exception NotImplemented
 
-(* assuming the following are interchangeable: 8,9 and 10am starts, and 11 and 12 starts*)
+(* assuming the following are interchangeable: 8,9 and 10am starts,
+and 11 and 12 starts *)
 type onshift =
   | Seven | Nine | Twelve | Three
 
@@ -37,10 +40,38 @@ name | market  | Wed 1 | Thu 2 | Fri 3  | ...
 *)
 type schedule = ((name * market list) * ((date * shift) list)) list
 
+(* Helper functions to implement
+get_cvrg : schedule -> (market * (int * onshift) list) list
+  ==> given a schedule, gives a breakdown of number of agents on
+    each shift per market
+enough_cvrg : (market * (int * onshift) list) list ->
+                (market * (int * onshift) list) list ->
+                  -> bool
+  ==> given two schedule coverages, cn and c, ouputs true if
+    s' has as much or more coverage than s, false otherwise
+good_days_config : schedule -> bool
+  ==> given a schedule, checks if there is a max of 5 onshift
+  days in a row and 2 or more offshift days in a row if
+  an offshift day is found (i.e. no 1 day weekends). Outputs
+  true if so, false otherwise.
+eq_sch_size : schedule -> schedule -> bool
+  ==> given two schedules, returns true if they are of equal
+  size (i.e. same number of agents and dates per agent).
+  Returns false otherwise.
+*)
+
+let get_cvrg s = raise NotImplemented
+
+let enough_cvrg cn c = raise NotImplemented
+
+let good_days_config s = raise NotImplemented
+
+let eq_sch_size s1 s2 = raise NotImplemented
+
 (* val to_5daywks : schedule -> schedule
 A function taking a schedule and trying to output a schedule of equivalent
-daily market coverage, BUT with maximum 5 consecutive workdays (onshift) followed
-by at least 2 consecutive days off (offshift)
+(or greater) daily market coverage, BUT with maximum 5 consecutive workdays
+(onshift) followed by at least 2 consecutive days off (offshift)
 
 If not possible, raises error NoConfig. We'll implement with exception
 backtracking and maybe convert to a tail recursive version with continuations
@@ -49,4 +80,23 @@ if needed.
 First, we need to know the current coverage we'll need to check upon generation
 of a potential new schedule.
 *)
-let to_5daywks s = raise NoConfig
+let rec to_5daywks s acc = match s with
+  | [] -> if not(eq_sch_size s acc) then raise ScheduleSizeMismatch
+          else(
+            (* Note: consider refactoring with a partial evaluation
+             * to only calculate (get_cvrg s) once
+             *)
+            if (enough_cvrg (get_cvrg acc) (get_cvrg s)) &&
+              good_days_config acc then acc
+            else
+              raise NoConfig
+            )
+  (* This will likely be the hardest part to implement.
+   * How to best build an alternative schedule to check? Will need
+   * to think about this. Might need nested try-with's?
+   *)
+  | ag::ags ->
+    try
+      raise NotImplemented
+    with
+      NoConfig -> raise NotImplemented
