@@ -7,8 +7,8 @@ and 11 and 12 starts *)
 type onshift =
   | Seven | Nine | Twelve | Three
 
-  type offshift =
-    | Off | Pto | Hc | Stat
+type offshift =
+  | Off | Pto | Hc | Stat
 
 type shift =
   | On of (onshift)
@@ -40,13 +40,13 @@ name | market  | Wed 1 | Thu 2 | Fri 3  | ...
 *)
 type schedule = ((name * market list) * ((date * shift) list)) list
 
+(* A list of how many agents are on which shift per market *)
+type coverage = (market * (int * onshift) list) list
+
 (* Helper functions to implement
-get_cvrg : schedule -> (market * (int * onshift) list) list
-  ==> given a schedule, gives a breakdown of number of agents on
-    each shift per market
-enough_cvrg : (market * (int * onshift) list) list ->
-                (market * (int * onshift) list) list ->
-                  -> bool
+get_cvrg : schedule -> coverage
+  ==> given a schedule, gives the coverage of that schedule
+enough_cvrg : coverage -> coverage -> bool
   ==> given two schedule coverages, cn and c, ouputs true if
     s' has as much or more coverage than s, false otherwise
 good_days_config : schedule -> bool
@@ -76,17 +76,12 @@ A function taking a schedule and trying to output a schedule of equivalent
 If not possible, raises error NoConfig. We'll implement with exception
 backtracking and maybe convert to a tail recursive version with continuations
 if needed.
-
-First, we need to know the current coverage we'll need to check upon generation
-of a potential new schedule.
 *)
-let rec to_5daywks s acc = match s with
+
+let rec to_5daywks s cv acc = match s with
   | [] -> if not(eq_sch_size s acc) then raise ScheduleSizeMismatch
           else(
-            (* Note: consider refactoring with a partial evaluation
-             * to only calculate (get_cvrg s) once
-             *)
-            if (enough_cvrg (get_cvrg acc) (get_cvrg s)) &&
+            if (enough_cvrg (get_cvrg acc) cv) &&
               good_days_config acc then acc
             else
               raise NoConfig
@@ -100,3 +95,9 @@ let rec to_5daywks s acc = match s with
       raise NotImplemented
     with
       NoConfig -> raise NotImplemented
+
+(* Once finished, to_5daywks should be called as:
+      to_5daywks s (get_cvrg s) []
+    (might need more complicated accumulator but will keep []
+    for now)
+*)
