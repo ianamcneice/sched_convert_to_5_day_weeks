@@ -44,9 +44,9 @@ type schedule = ((name * market list) * ((date * shift) list)) list
 type coverage = (market * (int * onshift) list) list
 
 (* Helper functions to implement
-get_cvrg : schedule -> coverage
+get_coverage : schedule -> coverage
   ==> given a schedule, gives the coverage of that schedule
-enough_cvrg : coverage -> coverage -> bool
+enough_coverage : coverage -> coverage -> bool
   ==> given two schedule coverages, cn and c, ouputs true if
     s' has as much or more coverage than s, false otherwise
 good_days_config : schedule -> bool
@@ -54,19 +54,23 @@ good_days_config : schedule -> bool
   days in a row and 2 or more offshift days in a row if
   an offshift day is found (i.e. no 1 day weekends). Outputs
   true if so, false otherwise.
-eq_sch_size : schedule -> schedule -> bool
+equal_schedule_size : schedule -> schedule -> bool
   ==> given two schedules, returns true if they are of equal
   size (i.e. same number of agents and dates per agent).
   Returns false otherwise.
 *)
 
-let get_cvrg s = raise NotImplemented
+(* may need to make this market specific *)
+let get_coverage s = raise NotImplemented
 
-let enough_cvrg cn c = raise NotImplemented
+(* unit test get_coverage once implemented *)
 
+let enough_cvrg new_coverage coverage = raise NotImplemented
+
+(* may need to make this agent specific *)
 let good_days_config s = raise NotImplemented
 
-let eq_sch_size s1 s2 = raise NotImplemented
+let equal_schedule_size s1 s2 = raise NotImplemented
 
 (* val to_5daywks : schedule -> schedule
 A function taking a schedule and trying to output a schedule of equivalent
@@ -79,9 +83,9 @@ if needed.
 *)
 
 let rec to_5daywks s cv acc = match s with
-  | [] -> if not(eq_sch_size s acc) then raise ScheduleSizeMismatch
+  | [] -> if not(equal_schedule_size s acc) then raise ScheduleSizeMismatch
           else(
-            if (enough_cvrg (get_cvrg acc) cv) &&
+            if (enough_coverage (get_coverage acc) cv) &&
               good_days_config acc then acc
             else
               raise NoConfig
@@ -97,7 +101,8 @@ let rec to_5daywks s cv acc = match s with
       NoConfig -> raise NotImplemented
 
 (* Once finished, to_5daywks should be called as:
-      to_5daywks s (get_cvrg s) []
+      let cv = get_coverage s in
+      to_5daywks s cv []
     (might need more complicated accumulator but will keep []
-    for now)
+    as a placeholder for now)
 *)
